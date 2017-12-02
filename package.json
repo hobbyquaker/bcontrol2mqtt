@@ -1,9 +1,12 @@
 {
   "name": "bcontrol2mqtt",
-  "description": "Publish values from B-Control Energy Manager to MQTT",
+  "description": "Publish Measurements from B-Control Energy Manager Smart Meters on MQTT",
   "version": "1.0.0",
   "preferGlobal": true,
   "main": "index.js",
+  "engines": {
+    "node": ">=6.0.0"
+  },
   "bin": {
     "bcontrol2mqtt": "./index.js"
   },
