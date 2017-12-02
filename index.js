@@ -8,7 +8,7 @@ const config = require('./config.js');
 
 const cookieJar = request.jar();
 
-log.loglevel = ['debug', 'info', 'warn', 'error'].indexOf(config.verbosity) === -1 ? 'info' : config.verbosity;
+log.setLevel(['debug', 'info', 'warn', 'error'].indexOf(config.verbosity) === -1 ? 'info' : config.verbosity);
 
 log.info(pkg.name + ' ' + pkg.version + ' starting');
 
@@ -40,7 +40,7 @@ const names = {};
 getAuthCookie(getMeters);
 
 function getAuthCookie(callback) {
-    log.info('login on ' + config.smartmeter);
+    log.info('trying to get auth cookie from ' + config.smartmeter);
     request.get({
         url: 'http://' + config.smartmeter + '/index.php',
         jar: cookieJar
@@ -49,6 +49,7 @@ function getAuthCookie(callback) {
             log.error('auth failed');
             process.exit(1);
         } else {
+            log.info('auth successful');
             mqtt.publish(config.name + '/connected', '2', {retain: true});
             callback();
         }
@@ -77,13 +78,14 @@ function getMeters() {
         const meters = data.meters;
 
         numMeters = meters.length;
+        log.info('got', numMeters, 'meters');
 
         for (let i = 0; i < meters.length; i++) {
             names[i] = meters[i].label;
             // Names[i] = names[i].replace(/Teridian/, 'Gesamtverbrauch');
             log.debug(i, meters[i]);
         }
-
+        log.info('entering loop');
         loop();
     });
 }
@@ -100,13 +102,14 @@ function loop() {
 }
 
 function getValue(meterId, callback) {
+    log.debug('request meterId', meterId);
     request.post({
         jar: cookieJar,
         url: 'http://' + config.smartmeter + '/mum-webservice/consumption.php?meter_id=' + meterId
     }, (err, res, body) => {
         if (err) {
             log.error(err);
-            return;
+            process.exit(1);
         }
         let data;
         try {
@@ -127,7 +130,7 @@ function getValue(meterId, callback) {
         const topic = config.name + '/status/' + names[meterId];
         const payload = JSON.stringify({val: parseFloat((data[idx + '_power'] * 1000).toFixed(1))});
 
-        log.debug(topic, payload);
+        log.debug('mqtt publish', topic, payload);
         mqtt.publish(topic, payload, {retain: true});
         callback();
     });
