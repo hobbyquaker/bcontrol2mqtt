@@ -1,17 +1,16 @@
 #!/usr/bin/env node
+
+const Mqtt = require('mqtt');
+const request = require('request');
+const log = require('yalm');
 const pkg = require('./package.json');
 const config = require('./config.js');
-const request = require('request');
 
 const cookieJar = request.jar();
 
-const log = require('yalm');
-
-log.loglevel = ['debug', 'info', 'warn', 'error'].indexOf(config.verbosity) !== -1 ? config.verbosity : 'info';
+log.loglevel = ['debug', 'info', 'warn', 'error'].indexOf(config.verbosity) === -1 ? 'info' : config.verbosity;
 
 log.info(pkg.name + ' ' + pkg.version + ' starting');
-
-const Mqtt = require('mqtt');
 
 log.info('mqtt trying to connect', config.url);
 const mqtt = Mqtt.connect(config.url, {will: {topic: config.name + '/connected', payload: '0', retain: true}});
@@ -45,10 +44,10 @@ function getAuthCookie(callback) {
     request.get({
         url: 'http://' + config.smartmeter + '/index.php',
         jar: cookieJar
-    }, (err, res, body) => {
+    }, err => {
         if (err) {
             log.error('auth failed');
-            stop();
+            process.exit(1);
         } else {
             mqtt.publish(config.name + '/connected', '2', {retain: true});
             callback();
@@ -61,8 +60,12 @@ function getMeters() {
         url: 'http://' + config.smartmeter + '/mum-webservice/meters.php',
         jar: cookieJar
     }, (err, res, body) => {
+        if (err) {
+            log.error('getMeters failed');
+            process.exit(1);
+        }
         const data = JSON.parse(body);
-        if (data.authentication == false) {
+        if (!data.authentication) {
             log.error('auth failure');
             mqtt.publish(config.name + '/connected', '1', {retain: true});
             setTimeout(() => {
@@ -85,42 +88,43 @@ function getMeters() {
     });
 }
 
-let meter_index = 0;
+let meterIndex = 0;
 
 function loop() {
-    if (++meter_index >= numMeters) {
-        meter_index = 0;
+    if (++meterIndex >= numMeters) {
+        meterIndex = 0;
     }
-    getValue(meter_index, () => {
+    getValue(meterIndex, () => {
         setTimeout(loop, config.interval);
     });
 }
 
-function getValue(meter_id, callback) {
+function getValue(meterId, callback) {
     request.post({
         jar: cookieJar,
-        url: 'http://' + config.smartmeter + '/mum-webservice/consumption.php?meter_id=' + meter_id
+        url: 'http://' + config.smartmeter + '/mum-webservice/consumption.php?meter_id=' + meterId
     }, (err, res, body) => {
         if (err) {
             log.error(err);
             return;
         }
+        let data;
         try {
-            var data = JSON.parse(body);
-        } catch (e) {
-            log.error(e.message);
+            data = JSON.parse(body);
+        } catch (err) {
+            log.error(err.message);
             return;
         }
-        if (data.authentication == false) {
+        if (!data.authentication) {
             mqtt.publish(config.name + '/connected', '1', {retain: true});
             log.error('auth failure');
             getAuthCookie(getMeters);
             return;
         }
 
-        const idx = ('0' + (meter_id + 1)).slice(-2);
+        const idx = ('0' + (meterId + 1)).slice(-2);
 
-        const topic = config.name + '/status/' + names[meter_id];
+        const topic = config.name + '/status/' + names[meterId];
         const payload = JSON.stringify({val: parseFloat((data[idx + '_power'] * 1000).toFixed(1))});
 
         log.debug(topic, payload);
