@@ -7,20 +7,20 @@ module.exports = require('yargs')
     .describe('i', 'polling interval')
     .describe('h', 'show help')
     .alias({
-        'h': 'help',
-        'n': 'name',
-        'u': 'url',
-        'v': 'verbosity',
-        's': 'smartmeter',
-        'i': 'interval'
+        h: 'help',
+        n: 'name',
+        u: 'url',
+        v: 'verbosity',
+        s: 'smartmeter',
+        i: 'interval'
 
     })
     .default({
-        'u': 'mqtt://127.0.0.1',
-        's': '172.16.23.138',
-        'i': 1000,
-        'n': 'bcontrol',
-        'v': 'info'
+        u: 'mqtt://127.0.0.1',
+        s: '172.16.23.138',
+        i: 1000,
+        n: 'bcontrol',
+        v: 'info'
     })
     .version()
     .help('help')
