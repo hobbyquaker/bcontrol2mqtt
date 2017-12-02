@@ -19,7 +19,7 @@ Prerequisites: [Node.js](https://nodejs.org) 6.0 or higher.
 
 `$ sudo npm install -g bcontrol2mqtt`
 
-I suggest to use [pm2](http://pm2.keymetrics.io/) to manage the hm2mqtt process (start on system boot, manage log files, 
+I suggest to use [pm2](http://pm2.keymetrics.io/) to manage the bcontrol2mqtt process (start on system boot, manage log files, 
 ...)
 
 
