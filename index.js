@@ -40,7 +40,7 @@ log.info(pkg.name + ' ' + pkg.version + ' starting');
 var Mqtt = require('mqtt');
 
 log.info('mqtt trying to connect', config.url);
-var mqtt = Mqtt.connect(config.url, {will: {topic: config.name + '/connected', payload: '0'}});
+var mqtt = Mqtt.connect(config.url, {will: {topic: config.name + '/connected', payload: '0', retain: true}});
 mqtt.publish(config.name + '/connected', '1');
 
 var connected;
@@ -77,7 +77,7 @@ function getAuthCookie(callback) {
             log.error('auth failed');
             stop();
         } else {
-            mqtt.publish(config.name + '/connected', '2');
+            mqtt.publish(config.name + '/connected', '2', {retain: true});
             callback();
         }
     });
@@ -92,7 +92,7 @@ function getMeters() {
         var data = JSON.parse(body);
         if (data.authentication == false) {
             log.error("auth failure");
-            mqtt.publish(config.name + '/connected', '1');
+            mqtt.publish(config.name + '/connected', '1', {retain: true});
             setTimeout(function () {
                 getAuthCookie(getMeters);
             }, 60000);
@@ -104,7 +104,8 @@ function getMeters() {
         numMeters = meters.length;
 
         for (var i = 0; i < meters.length; i++) {
-            names[i] = meters[i].label === "Teridian" ? 'Gesamtverbrauch' : meters[i].label;
+            names[i] = meters[i].label;
+            //names[i] = names[i].replace(/Teridian/, 'Gesamtverbrauch');
             log.debug(i, meters[i]);
         }
 
@@ -140,7 +141,7 @@ function getValue(meter_id, callback) {
             return;
         }
         if (data.authentication == false) {
-            mqtt.publish(config.name + '/connected', '1');
+            mqtt.publish(config.name + '/connected', '1', {retain: true});
             log.error("auth failure");
             getAuthCookie(getMeters);
             return;
