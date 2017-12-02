@@ -8,7 +8,7 @@
     "bcontrol2mqtt": "./index.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "camo-purge; xo"
   },
   "author": "Sebastian 'hobbyquaker' Raff <hq@ccu.io>",
   "license": "MIT",
@@ -18,7 +18,10 @@
     "yalm": "^4.1.0",
     "yargs": "^10.0.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "camo-purge": "^1.0.2",
+    "xo": "^0.18.2"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/hobbyquaker/bcontrol2mqtt"
@@ -37,5 +40,8 @@
   "bugs": {
     "url": "https://github.com/hobbyquaker/bcontrol2mqtt/issues"
   },
-  "homepage": "https://github.com/hobbyquaker/bcontrol2mqtt"
+  "homepage": "https://github.com/hobbyquaker/bcontrol2mqtt",
+  "xo": {
+    "space": 4
+  }
 }
