@@ -22,8 +22,8 @@
     "yargs": "^10.0.3"
   },
   "devDependencies": {
-    "camo-purge": "^1.0.2",
-    "xo": "^0.18.2"
+    "camo-purge": "latest",
+    "xo": "latest"
   },
   "repository": {
     "type": "git",
