@@ -13,7 +13,7 @@
   "scripts": {
     "test": "camo-purge; xo"
   },
-  "author": "Sebastian 'hobbyquaker' Raff <hq@ccu.io>",
+  "author": "Sebastian 'hobbyquaker' Raff <hobbyquaker@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "mqtt": "^2.14.0",
