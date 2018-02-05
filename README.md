@@ -31,7 +31,7 @@ I suggest to use [pm2](http://pm2.keymetrics.io/) to manage the bcontrol2mqtt pr
 
 ## License
 
-MIT (c) 2015-2017 [Sebastian Raff](https://github.com/hobbyquaker)
+MIT (c) 2015-2018 [Sebastian Raff](https://github.com/hobbyquaker)
 
 [mit-badge]: https://img.shields.io/badge/License-MIT-blue.svg?style=flat
 [mit-url]: LICENSE
