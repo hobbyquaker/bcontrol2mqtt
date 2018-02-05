@@ -14,7 +14,16 @@ log.info(pkg.name + ' ' + pkg.version + ' starting');
 
 log.info('mqtt trying to connect', config.url);
 const mqtt = Mqtt.connect(config.url, {will: {topic: config.name + '/connected', payload: '0', retain: true}});
-mqtt.publish(config.name + '/connected', '1');
+
+function mqttPub(topic, payload, options) {
+    if (typeof payload !== 'string') {
+        payload = JSON.stringify(payload);
+    }
+    log.debug('mqtt >', topic, payload);
+    mqtt.publish(topic, payload, options);
+}
+
+mqttPub(config.name + '/connected', '1');
 
 let connected;
 
@@ -50,7 +59,7 @@ function getAuthCookie(callback) {
             process.exit(1);
         } else {
             log.info('auth successful');
-            mqtt.publish(config.name + '/connected', '2', {retain: true});
+            mqttPub(config.name + '/connected', '2', {retain: true});
             callback();
         }
     });
@@ -68,7 +77,7 @@ function getMeters() {
         const data = JSON.parse(body);
         if (!data.authentication) {
             log.error('auth failure');
-            mqtt.publish(config.name + '/connected', '1', {retain: true});
+            mqttPub(config.name + '/connected', '1', {retain: true});
             setTimeout(() => {
                 getAuthCookie(getMeters);
             }, 60000);
@@ -118,20 +127,17 @@ function getValue(meterId, callback) {
             log.error(err.message);
             return;
         }
+        log.debug('<', JSON.stringify(data));
         if (!data.authentication) {
-            mqtt.publish(config.name + '/connected', '1', {retain: true});
+            mqttPub(config.name + '/connected', '1', {retain: true});
             log.error('auth failure');
             getAuthCookie(getMeters);
             return;
         }
 
-        const idx = ('0' + (meterId + 1)).slice(-2);
+        mqttPub(config.name + '/status/' + names[meterId], {val: parseFloat((data.sum_power * 1000).toFixed(1))}, {retain: true});
+        mqttPub(config.name + '/status/' + names[meterId] + '/energy', {val: parseFloat((data.sum_energy).toFixed(3))}, {retain: true});
 
-        const topic = config.name + '/status/' + names[meterId];
-        const payload = JSON.stringify({val: parseFloat((data[idx + '_power'] * 1000).toFixed(1))});
-
-        log.debug('mqtt publish', topic, payload);
-        mqtt.publish(topic, payload, {retain: true});
         callback();
     });
 }
